@@ -70,7 +70,7 @@ class AutoTest01:
 if __name__ == '__main__':
 
 
-    driverPath = os.path.join(FilePathHelper.get_project_path(), file_config_dict['input_driver_path'],"chromedriver.exe")
+    driverPath = os.path.join(FilePathHelper.get_project_path(), file_config_dict['input_driver_path'],"1.exe")
     service = Service(driverPath)
     driver = webdriver.Chrome(service=service)
     AutoTest01(driver).login()
