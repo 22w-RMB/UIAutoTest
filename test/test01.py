@@ -69,10 +69,12 @@ class AutoTest01:
 
 if __name__ == '__main__':
 
-
-    driverPath = os.path.join(FilePathHelper.get_project_path(), file_config_dict['input_driver_path'],"1.exe")
+    options = webdriver.ChromeOptions()
+    options.add_experimental_option('detach', True)  # 不自动关闭浏览器
+    driverPath = os.path.join(FilePathHelper.get_project_path(), file_config_dict['input_driver_path'],"chromedriver.exe")
     service = Service(driverPath)
-    driver = webdriver.Chrome(service=service)
+    driver = webdriver.Chrome(service=service, options=options)
+    # driver.get("https://www.hao123.com/")
     AutoTest01(driver).login()
     # print(driverPath)
 
