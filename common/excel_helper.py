@@ -29,9 +29,9 @@ class ExcelHepler:
         beginRow = 1 if includeHeader else 2
         data = []
         lastCell = ws.used_range.last_cell
-        for r in range(beginRow,lastCell.row):
+        for r in range(beginRow,lastCell.row+1):
             rowList = []
-            for c in range(1,lastCell.row):
+            for c in range(1,lastCell.column+1):
                 rowList.append(ws.range(r,c).value)
             data.append(dict(zip(self.header,rowList)))
 
@@ -79,8 +79,10 @@ class ExcelHepler:
 excelPath = os.path.join(FilePathHelper.get_project_path(), file_config_dict['input_excel_path'], "配置信息.xlsx")
 excel_helper = ExcelHepler(excelPath)
 data_config_dict : dict
+data_list : list
 try:
     data_config_dict = excel_helper.getConfigInfo('login')
+    data_list = excel_helper.getAllData('公有数据管理')
 finally:
     excel_helper.close()
 
@@ -88,5 +90,8 @@ if __name__ == '__main__':
 
 
     excelPath = os.path.join(FilePathHelper.get_project_path(),file_config_dict['input_excel_path'],"配置信息.xlsx")
-    print(ExcelHepler(excelPath).getConfigInfo('login'))
-    print(ExcelHepler(excelPath).getAllData('公有数据管理'))
+    e = ExcelHepler(excelPath)
+    print(e.getConfigInfo('login'))
+    print(e.getAllData('公有数据管理'))
+
+    e.close()

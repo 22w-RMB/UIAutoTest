@@ -5,10 +5,11 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver import ActionChains
+from selenium.webdriver import ActionChains, Keys
 from common.filepath_helper import FilePathHelper
 from common.yaml_helper import file_config_dict
 from common.excel_helper import data_config_dict as data_dict
+from common.excel_helper import data_list
 
 class AutoTest01:
 
@@ -55,15 +56,35 @@ class AutoTest01:
         self.waitElementDisplay(by=By.XPATH, value=appXpath).click()
 
 
+    def elementOperator(self, isElements, operator, by, value ,key):
+
+        if operator == 'click':
+            self.waitElementDisplay(by,value,isElements).click()
+        elif operator == 'input':
+            e = self.waitElementDisplay(by, value, isElements)
+            e.send_keys(Keys.CONTROL+"a")
+            e.send_keys(key)
+        elif operator == 'table':
+            trs = self.waitElementDisplay(by, value, isElements)
+            for tr in trs:
+                # print(t.text)
+                # print("====")
+                tds = tr.find_elements(by=By.TAG_NAME, value='td')
+                for td in tds:
+                    print(td.text)
+        else:
+            exit('类型错误')
+
     def waitElementDisplay(self,  by , value ,isElements = False) :
 
 
-        WebDriverWait(self.driver,10).until(EC.visibility_of_element_located((by,value)))
 
         ele = self.driver
         if isElements:
+            WebDriverWait(self.driver,10).until(EC.presence_of_element_located((by, value)))
             ele = self.driver.find_elements(by=by, value=value)
         else:
+            WebDriverWait(self.driver,10).until(EC.visibility_of_element_located((by,value)))
             ele = self.driver.find_element(by=by, value=value)
         return ele
 
@@ -75,7 +96,17 @@ if __name__ == '__main__':
     service = Service(driverPath)
     driver = webdriver.Chrome(service=service, options=options)
     # driver.get("https://www.hao123.com/")
-    AutoTest01(driver).login()
+    a = AutoTest01(driver)
+    a.login()
+
+    # for i in range(0,len(data_list)):
+    #     a.elementOperator(data_list[i]['isElements'],data_list[i]['operator']
+    #                       ,data_list[i]['by'],data_list[i]['value'],data_list[i]['key'])
+
+    a.elementOperator(isElements=True,operator='table',by=By.XPATH,
+                      value='//*[@id="root"]/section/section/section/main/div/div/div/div[2]/div/div/div/div/div[2]/div[2]/div/div/div/div/div[2]/table/tbody/tr'
+                      , key = None)
+
     # print(driverPath)
 
 
