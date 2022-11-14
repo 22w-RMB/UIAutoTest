@@ -8,8 +8,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver import ActionChains, Keys
 from common.filepath_helper import FilePathHelper
 from common.yaml_helper import file_config_dict
-from common.excel_helper import data_config_dict as data_dict
-from common.excel_helper import data_list
+from common.excel_helper import ExcelHepler
 
 class AutoTest01:
 
@@ -56,7 +55,7 @@ class AutoTest01:
         self.waitElementDisplay(by=By.XPATH, value=appXpath).click()
 
 
-    def elementOperator(self, isElements, operator, by, value ,key):
+    def elementOperator(self, isElements, operator, by, value ,key=None,fileName=None,sheetName=None):
 
         if operator == 'click':
             self.waitElementDisplay(by,value,isElements).click()
@@ -65,22 +64,108 @@ class AutoTest01:
             e.send_keys(Keys.CONTROL+"a")
             e.send_keys(key)
         elif operator == 'table':
-            trs = self.waitElementDisplay(by, value, isElements)
-            for tr in trs:
-                # print(t.text)
-                # print("====")
-                tds = tr.find_elements(by=By.TAG_NAME, value='td')
-                for td in tds:
-                    print(td.text)
+            self.tableAssert(isElements, by, value,fileName,sheetName)
         else:
             exit('类型错误')
+
+
+    def tableAssert(self,isElements, by, value,fileName=None,sheetName=None):
+        tableData = self.getTableData(isElements, by, value)
+        fileData = self.getFileData(fileName,sheetName)
+        self.listCompare(tableData, fileData)
+
+    def getTableData(self,isElements, by, value):
+
+        trs = self.waitElementDisplay(by, value, isElements)
+        tableData = []
+        i = 0
+        for tr in trs:
+            if i == 0:
+                i += 1
+                continue
+
+            t = []
+            tds = tr.find_elements(by=By.TAG_NAME, value='td')
+            for td in tds:
+                t.append(td.text)
+                # print(td.text)
+            tableData.append(t)
+
+        print("表格数据",tableData)
+        return tableData
+
+    def listCompare(self,tableData,fileData):
+
+
+
+        if type(tableData) == str or type(tableData) == int:
+
+            isFloat = False
+            if "." in tableData:
+                s = tableData.split(".")
+                if len(s) == 2:
+                    if s[0].isdigit() and s[1].isdigit() :
+                        isFloat = True
+
+            if isFloat:
+                tableData = float(tableData)
+
+            if tableData != fileData:
+                print("数据不一样")
+            else:
+                print("数据一样")
+            return
+
+        if type(tableData) != type(fileData):
+            print(tableData,fileData)
+            print(type(tableData) ,type(fileData))
+            print("类型不一样")
+            return
+
+        if type(tableData) != list:
+            print("类型不是list")
+
+        tl = len(tableData)
+        fl = len(fileData)
+        if tl!=fl:
+            print("长度不一样")
+            return
+
+        for i in range(0,tl):
+            self.listCompare(tableData[i],fileData[i])
+
+
+
+    def getFileData(self,fileName,sheetName):
+
+        print(self.getFilePath(fileName))
+        eh = ExcelHepler(self.getFilePath(fileName))
+        d : list
+        try:
+            d = eh.getAllData(sheetName)
+        finally:
+            eh.close()
+        print("文件数据",d)
+        return d
+
+    def getFilePath(self,fileName):
+        path = os.path.join(FilePathHelper.get_project_path(), file_config_dict['input_excel_path'])
+
+        for root,dirs,files in os.walk(path):
+            for file in files:
+                print(file)
+                if fileName in file:
+                    print(root, file)
+                    return os.path.join(root,file)
+
+
 
     def waitElementDisplay(self,  by , value ,isElements = False) :
 
 
-
         ele = self.driver
         if isElements:
+
             WebDriverWait(self.driver,10).until(EC.presence_of_element_located((by, value)))
             ele = self.driver.find_elements(by=by, value=value)
         else:
@@ -90,6 +175,17 @@ class AutoTest01:
 
 if __name__ == '__main__':
 
+    # 获取配置信息
+    excelPath = os.path.join(FilePathHelper.get_project_path(), file_config_dict['input_excel_path'], "配置信息.xlsx")
+    excel_helper = ExcelHepler(excelPath)
+    data_dict: dict
+    data_list: list
+    try:
+        data_dict = excel_helper.getConfigInfo('login')
+        data_list = excel_helper.getConfigData('公有数据管理')
+    finally:
+        excel_helper.close()
+
     options = webdriver.ChromeOptions()
     options.add_experimental_option('detach', True)  # 不自动关闭浏览器
     driverPath = os.path.join(FilePathHelper.get_project_path(), file_config_dict['input_driver_path'],"chromedriver.exe")
@@ -98,16 +194,16 @@ if __name__ == '__main__':
     # driver.get("https://www.hao123.com/")
     a = AutoTest01(driver)
     a.login()
+    for i in range(0,len(data_list)):
+        a.elementOperator(data_list[i]['isElements'],data_list[i]['operator']
+                          ,data_list[i]['by'],data_list[i]['value'],data_list[i]['key']
+                          ,data_list[i]['fileName'],data_list[i]['sheetName'])
 
-    # for i in range(0,len(data_list)):
-    #     a.elementOperator(data_list[i]['isElements'],data_list[i]['operator']
-    #                       ,data_list[i]['by'],data_list[i]['value'],data_list[i]['key'])
+    # a.elementOperator(isElements=True,operator='table',by=By.XPATH,
+    #                   value='//*[@id="root"]/section/section/section/main/div/div/div/div[2]/div/div/div/div/div[2]/div[2]/div/div/div/div/div[2]/table/tbody/tr'
+    #                   , key = None)
 
-    a.elementOperator(isElements=True,operator='table',by=By.XPATH,
-                      value='//*[@id="root"]/section/section/section/main/div/div/div/div[2]/div/div/div/div/div[2]/div[2]/div/div/div/div/div[2]/table/tbody/tr'
-                      , key = None)
-
-    # print(driverPath)
+    # a.getExcelData('全网统一出清价格','2022-02-03')
 
 
 
