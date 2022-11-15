@@ -5,7 +5,7 @@ from common.filepath_helper import FilePathHelper
 
 config_path = os.path.join(FilePathHelper.get_project_path(),"conf","config.yaml")
 
-print(config_path)
+# print(config_path)
 
 file_config_dict : dict
 

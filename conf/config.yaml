@@ -1,7 +1,7 @@
-input_driver_path: input/driver
-input_excel_path: input/excel
-output_file_path: output/file
-output_log_path: output/log
+input_driver_path: input\driver
+input_excel_path: input\excel
+output_file_path: output\file
+output_log_path: output\log
 execl_field:
  - instructions
  - isElements

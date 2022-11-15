@@ -58,13 +58,20 @@ class AutoTest01:
     def elementOperator(self, isElements, operator, by, value ,key=None,fileName=None,sheetName=None):
 
         if operator == 'click':
-            self.waitElementDisplay(by,value,isElements).click()
+            e = self.waitElementDisplay(by,value,isElements)
+            print(e.text)
+            e.click()
         elif operator == 'input':
             e = self.waitElementDisplay(by, value, isElements)
             e.send_keys(Keys.CONTROL+"a")
             e.send_keys(key)
         elif operator == 'table':
             self.tableAssert(isElements, by, value,fileName,sheetName)
+        elif operator == 'date':
+            e = self.waitElementDisplay(by, value, isElements)
+            e.send_keys(Keys.CONTROL+"a")
+            e.send_keys(key)
+            e.send_keys(Keys.ENTER)
         else:
             exit('类型错误')
 
@@ -91,7 +98,7 @@ class AutoTest01:
                 # print(td.text)
             tableData.append(t)
 
-        print("表格数据",tableData)
+        # print("表格数据",tableData)
         return tableData
 
     def listCompare(self,tableData,fileData):
@@ -138,14 +145,14 @@ class AutoTest01:
 
     def getFileData(self,fileName,sheetName):
 
-        print(self.getFilePath(fileName))
+        # print(self.getFilePath(fileName))
         eh = ExcelHepler(self.getFilePath(fileName))
         d : list
         try:
             d = eh.getAllData(sheetName)
         finally:
             eh.close()
-        print("文件数据",d)
+        # print("文件数据",d)
         return d
 
     def getFilePath(self,fileName):
@@ -153,9 +160,9 @@ class AutoTest01:
 
         for root,dirs,files in os.walk(path):
             for file in files:
-                print(file)
+                # print(file)
                 if fileName in file:
-                    print(root, file)
+                    # print(root, file)
                     return os.path.join(root,file)
 
 
@@ -187,7 +194,22 @@ if __name__ == '__main__':
         excel_helper.close()
 
     options = webdriver.ChromeOptions()
+
     options.add_experimental_option('detach', True)  # 不自动关闭浏览器
+
+    downloadPath = os.path.join(FilePathHelper.get_project_path(),file_config_dict["output_file_path"])
+    print(downloadPath)
+    prefs = {
+        'download.default_directory': downloadPath,     # 设置下载路径，路径不存在会自动创建
+        'download.prompt_for_download': False,           # 是否弹窗询问
+        'safebrowsing.enabled': False,                   # 是否提示安全警告
+        # Boolean that records if the download directory was changed by an
+        # upgrade a unsafe location to a safe location.
+    }
+
+    options.add_experimental_option("prefs",prefs)
+
+
     driverPath = os.path.join(FilePathHelper.get_project_path(), file_config_dict['input_driver_path'],"chromedriver.exe")
     service = Service(driverPath)
     driver = webdriver.Chrome(service=service, options=options)
