@@ -72,6 +72,10 @@ class AutoTest01:
             e.send_keys(Keys.CONTROL+"a")
             e.send_keys(key)
             e.send_keys(Keys.ENTER)
+        elif operator == 'find':
+            e1 = self.waitElementDisplay(by, value, isElements)
+            e2 = self.waitElementDisplay(By.XPATH, value+'//*[contains(text(),"'+key+'")]', isElements, e1)
+            e2.click()
         else:
             exit('类型错误')
 
@@ -177,17 +181,21 @@ class AutoTest01:
 
 
 
-    def waitElementDisplay(self,  by , value ,isElements = False) :
+    def waitElementDisplay(self,  by , value ,isElements = False , el = None) :
 
+        ele = ""
 
-        ele = self.driver
+        if el is None:
+            ele = self.driver
+        else:
+            ele = el
         if isElements:
 
-            WebDriverWait(self.driver,10).until(EC.presence_of_element_located((by, value)))
-            ele = self.driver.find_elements(by=by, value=value)
+            WebDriverWait(ele,10).until(EC.presence_of_element_located((by, value)))
+            ele = ele.find_elements(by=by, value=value)
         else:
-            WebDriverWait(self.driver,10).until(EC.visibility_of_element_located((by,value)))
-            ele = self.driver.find_element(by=by, value=value)
+            WebDriverWait(ele,10).until(EC.visibility_of_element_located((by,value)))
+            ele = ele.find_element(by=by, value=value)
         return ele
 
 if __name__ == '__main__':
@@ -199,7 +207,7 @@ if __name__ == '__main__':
     data_list: list
     try:
         data_dict = excel_helper.getConfigInfo('login')
-        data_list = excel_helper.getConfigData('公有数据管理')
+        data_list = excel_helper.getConfigData('私有数据管理')
     finally:
         excel_helper.close()
 
