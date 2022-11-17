@@ -16,7 +16,7 @@ class AutoTest01:
     def __init__(self , driver):
 
         self.driver = driver
-
+        self.log = []
 
         pass
 
@@ -59,7 +59,7 @@ class AutoTest01:
 
         if operator == 'click':
             e = self.waitElementDisplay(by,value,isElements)
-            print(e.text)
+            # print(e.text)
             e.click()
         elif operator == 'input':
             e = self.waitElementDisplay(by, value, isElements)
@@ -79,7 +79,7 @@ class AutoTest01:
     def tableAssert(self,isElements, by, value,fileName=None,sheetName=None):
         tableData = self.getTableData(isElements, by, value)
         fileData = self.getFileData(fileName,sheetName)
-        self.listCompare(tableData, fileData)
+        self.listCompare(fileName,tableData, fileData)
 
     def getTableData(self,isElements, by, value):
 
@@ -101,13 +101,16 @@ class AutoTest01:
         # print("表格数据",tableData)
         return tableData
 
-    def listCompare(self,tableData,fileData):
+    def listCompare(self,fileName,tableData,fileData):
 
 
 
         if type(tableData) == str or type(tableData) == int:
 
             isFloat = False
+            if "," in tableData:
+                print(fileName, "-",'有千分位')
+                tableData = tableData.replace(',','')
             if "." in tableData:
                 s = tableData.split(".")
                 if len(s) == 2:
@@ -118,28 +121,35 @@ class AutoTest01:
                 tableData = float(tableData)
 
             if tableData != fileData:
-                print("数据不一样")
+                # print("数据不一样")
+                print(fileName, "-",tableData,"-",fileData,"-","数据不一样")
+                # self.log.append(fileName, "-",tableData,"-",fileData,"-","数据不一样")
             else:
-                print("数据一样")
+                # print("数据一样")
+                pass
             return
 
         if type(tableData) != type(fileData):
             print(tableData,fileData)
             print(type(tableData) ,type(fileData))
-            print("类型不一样")
+            # print("类型不一样")
+            self.log.append("类型不一样")
             return
 
         if type(tableData) != list:
-            print("类型不是list")
+            # print("类型不是list")
+            self.log.append("类型不是list")
+            return
 
         tl = len(tableData)
         fl = len(fileData)
         if tl!=fl:
-            print("长度不一样")
+            # print("长度不一样")
+            self.log.append("长度不一样")
             return
 
         for i in range(0,tl):
-            self.listCompare(tableData[i],fileData[i])
+            self.listCompare(fileName,tableData[i],fileData[i])
 
 
 
@@ -210,9 +220,11 @@ if __name__ == '__main__':
     options.add_experimental_option("prefs",prefs)
 
 
-    driverPath = os.path.join(FilePathHelper.get_project_path(), file_config_dict['input_driver_path'],"chromedriver.exe")
-    service = Service(driverPath)
-    driver = webdriver.Chrome(service=service, options=options)
+    # driverPath = os.path.join(FilePathHelper.get_project_path(), file_config_dict['input_driver_path'],"chromedriver.exe")
+    # service = Service(driverPath)
+    # driver = webdriver.Chrome(service=service, options=options)
+    driver = webdriver.Chrome(options=options)
+
     # driver.get("https://www.hao123.com/")
     a = AutoTest01(driver)
     a.login()
@@ -227,7 +239,7 @@ if __name__ == '__main__':
 
     # a.getExcelData('全网统一出清价格','2022-02-03')
 
-
+    print(a.log)
 
 
     pass
